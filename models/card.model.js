@@ -23,7 +23,11 @@ const CardSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    likers: {
+    upvoter: {
+      type: [String],
+      required: true,
+    },
+    downvoter: {
       type: [String],
       required: true,
     },
