@@ -1,5 +1,6 @@
 const UserModel = require("../models/user.model");
 const ObjectID = require("mongoose").Types.ObjectId;
+const bcrypt = require("bcrypt");
 
 module.exports.getAllUsers = async (req, res) => {
   const users = await UserModel.find().select("-password");
@@ -17,25 +18,36 @@ module.exports.userInfo = (req, res) => {
 };
 
 module.exports.updateUser = async (req, res) => {
-  if (!ObjectID.isValid(req.params.id)) {
-    return res.status(400).send("ID unknown : " + req.params.id);
-  }
+  const { email, password, newPassword } = req.body;
+
   try {
+    if (newPassword.length < 6)
+      return res.status(200).send({
+        message: "Le nouveau mot de passe doit faire 6 caractères minimum",
+      });
+
+    const user = await UserModel.login(email, password);
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(newPassword, salt);
+
     await UserModel.findByIdAndUpdate(
-      { _id: req.params.id },
+      { _id: user._id },
       {
         $set: {
-          bio: req.body.bio,
+          password: hash,
         },
       },
       { new: true, upsert: true, setDefaultsOnInsert: true },
       (err, docs) => {
         if (!err) return res.send(docs);
-        if (err) return res.status(500).send({ message: err });
+        if (err)
+          return res.status(200).send({
+            message: "Le nouveau mot de passe doit faire 6 caractères minimum",
+          });
       }
     );
   } catch (err) {
-    return res.status(500).json({ message: err });
+    return res.status(200).json({ message: "Mauvais mot de passe" });
   }
 };
 
@@ -46,70 +58,6 @@ module.exports.deleteUser = async (req, res) => {
   try {
     await UserModel.deleteOne({ _id: req.params.id }).exec();
     res.status(200).json({ message: "Successfully deleted." });
-  } catch (err) {
-    return res.status(500).json({ message: err });
-  }
-};
-
-module.exports.follow = async (req, res) => {
-  if (!ObjectID.isValid(req.params.id)) {
-    return res.status(400).send("ID unknown : " + req.params.id);
-  } else if (!ObjectID.isValid(req.body.idToFollow)) {
-    return res.status(400).send("ID unknown : " + req.body.idToFollow);
-  }
-
-  try {
-    // add to the follower list
-    await UserModel.findByIdAndUpdate(
-      req.params.id,
-      { $addToSet: { following: req.body.idToFollow } },
-      { new: true, upsert: true },
-      (err, docs) => {
-        if (!err) res.status(201).json(docs);
-        else return res.status(400).json(err);
-      }
-    );
-    // add to following list
-    await UserModel.findByIdAndUpdate(
-      req.body.idToFollow,
-      { $addToSet: { followers: req.params.id } },
-      { new: true, upsert: true },
-      (err, docs) => {
-        if (err) return res.status(400).json(err);
-      }
-    );
-  } catch (err) {
-    return res.status(500).json({ message: err });
-  }
-};
-
-module.exports.unfollow = async (req, res) => {
-  if (!ObjectID.isValid(req.params.id)) {
-    return res.status(400).send("ID unknown : " + req.params.id);
-  } else if (!ObjectID.isValid(req.body.idToUnfollow)) {
-    return res.status(400).send("ID unknown : " + req.body.idToUnfollow);
-  }
-
-  try {
-    // add to the follower list
-    await UserModel.findByIdAndUpdate(
-      req.params.id,
-      { $pull: { following: req.body.idToUnfollow } },
-      { new: true, upsert: true },
-      (err, docs) => {
-        if (!err) res.status(201).json(docs);
-        else return res.status(400).json(err);
-      }
-    );
-    // add to following list
-    await UserModel.findByIdAndUpdate(
-      req.body.idToUnfollow,
-      { $pull: { followers: req.params.id } },
-      { new: true, upsert: true },
-      (err, docs) => {
-        if (err) return res.status(400).json(err);
-      }
-    );
   } catch (err) {
     return res.status(500).json({ message: err });
   }

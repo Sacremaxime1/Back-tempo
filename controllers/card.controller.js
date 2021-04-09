@@ -45,7 +45,8 @@ module.exports.createCard = async (req, res) => {
     posterId: req.body.posterId,
     message: req.body.message,
     picture: req.file !== null ? "./uploads/posts/" + fileName : "",
-    likers: [],
+    upvoter: [],
+    downvoter: [],
   });
 
   try {
@@ -54,25 +55,6 @@ module.exports.createCard = async (req, res) => {
   } catch (err) {
     return res.status(400).send(err);
   }
-};
-
-module.exports.updateCard = (req, res) => {
-  if (!ObjectID.isValid(req.params.id))
-    return res.status(400).send("ID unknown : " + req.params.id);
-
-  const updatedRecord = {
-    message: req.body.message,
-  };
-
-  CardModel.findByIdAndUpdate(
-    req.params.id,
-    { $set: updatedRecord },
-    { new: true },
-    (err, docs) => {
-      if (!err) res.send(docs);
-      else console.log("Update error : " + err);
-    }
-  );
 };
 
 module.exports.deleteCard = (req, res) => {
@@ -85,7 +67,7 @@ module.exports.deleteCard = (req, res) => {
   });
 };
 
-module.exports.likeCard = async (req, res) => {
+module.exports.upvoteCard = async (req, res) => {
   if (!ObjectID.isValid(req.params.id))
     return res.status(400).send("ID unknown : " + req.params.id);
 
@@ -93,7 +75,7 @@ module.exports.likeCard = async (req, res) => {
     await CardModel.findByIdAndUpdate(
       req.params.id,
       {
-        $addToSet: { likers: req.body.id },
+        $addToSet: { upvoter: req.body.id },
       },
       { new: true },
       (err, docs) => {
@@ -103,7 +85,7 @@ module.exports.likeCard = async (req, res) => {
     await UserModel.findByIdAndUpdate(
       req.body.id,
       {
-        $addToSet: { likes: req.params.id },
+        $addToSet: { upvote: req.params.id },
       },
       { new: true },
       (err, docs) => {
@@ -116,7 +98,7 @@ module.exports.likeCard = async (req, res) => {
   }
 };
 
-module.exports.unlikeCard = async (req, res) => {
+module.exports.unUpvoteCard = async (req, res) => {
   if (!ObjectID.isValid(req.params.id))
     return res.status(400).send("ID unknown : " + req.params.id);
 
@@ -124,7 +106,7 @@ module.exports.unlikeCard = async (req, res) => {
     await CardModel.findByIdAndUpdate(
       req.params.id,
       {
-        $pull: { likers: req.body.id },
+        $pull: { upvoter: req.body.id },
       },
       { new: true },
       (err, docs) => {
@@ -134,7 +116,69 @@ module.exports.unlikeCard = async (req, res) => {
     await UserModel.findByIdAndUpdate(
       req.body.id,
       {
-        $pull: { likes: req.params.id },
+        $pull: { upvote: req.params.id },
+      },
+      { new: true },
+      (err, docs) => {
+        if (!err) res.send(docs);
+        else return res.status(400).send(err);
+      }
+    );
+  } catch (err) {
+    return res.status(400).send(err);
+  }
+};
+
+module.exports.downvoteCard = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id))
+    return res.status(400).send("ID unknown : " + req.params.id);
+
+  try {
+    await CardModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        $addToSet: { downvoter: req.body.id },
+      },
+      { new: true },
+      (err, docs) => {
+        if (err) return res.status(400).send(err);
+      }
+    );
+    await UserModel.findByIdAndUpdate(
+      req.body.id,
+      {
+        $addToSet: { downvote: req.params.id },
+      },
+      { new: true },
+      (err, docs) => {
+        if (!err) res.send(docs);
+        else return res.status(400).send(err);
+      }
+    );
+  } catch (err) {
+    return res.status(400).send(err);
+  }
+};
+
+module.exports.unDownvoteCard = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id))
+    return res.status(400).send("ID unknown : " + req.params.id);
+
+  try {
+    await CardModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        $pull: { downvoter: req.body.id },
+      },
+      { new: true },
+      (err, docs) => {
+        if (err) return res.status(400).send(err);
+      }
+    );
+    await UserModel.findByIdAndUpdate(
+      req.body.id,
+      {
+        $pull: { downvote: req.params.id },
       },
       { new: true },
       (err, docs) => {

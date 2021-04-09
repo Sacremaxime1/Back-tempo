@@ -5,9 +5,10 @@ const upload = multer();
 
 router.get("/", cardController.readCard);
 router.post("/", upload.single("file"), cardController.createCard);
-router.put("/:id", cardController.updateCard);
 router.delete("/:id", cardController.deleteCard);
-router.patch("/like-card/:id", cardController.likeCard);
-router.patch("/unlike-card/:id", cardController.unlikeCard);
+router.patch("/upvote-card/:id", cardController.upvoteCard);
+router.patch("/unupvote-card/:id", cardController.unUpvoteCard);
+router.patch("/downvote-card/:id", cardController.downvoteCard);
+router.patch("/undownvote-card/:id", cardController.unDownvoteCard);
 
 module.exports = router;
