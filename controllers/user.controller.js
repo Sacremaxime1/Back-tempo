@@ -23,7 +23,7 @@ module.exports.updateUser = async (req, res) => {
   try {
     if (newPassword.length < 6)
       return res.status(200).send({
-        message: "Le nouveau mot de passe doit faire 6 caractères minimum",
+        error: "Le nouveau mot de passe doit faire 6 caractères minimum",
       });
 
     const user = await UserModel.login(email, password);
@@ -42,12 +42,12 @@ module.exports.updateUser = async (req, res) => {
         if (!err) return res.send(docs);
         if (err)
           return res.status(200).send({
-            message: "Le nouveau mot de passe doit faire 6 caractères minimum",
+            error: "Le nouveau mot de passe doit faire 6 caractères minimum",
           });
       }
     );
   } catch (err) {
-    return res.status(200).json({ message: "Mauvais mot de passe" });
+    return res.status(200).json({ error: "Mauvais mot de passe" });
   }
 };
 

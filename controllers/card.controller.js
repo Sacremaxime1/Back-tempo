@@ -44,7 +44,7 @@ module.exports.createCard = async (req, res) => {
     name: req.body.name,
     posterId: req.body.posterId,
     message: req.body.message,
-    picture: req.file !== null ? "./uploads/posts/" + fileName : "",
+    picture: req.file !== null ? "./uploads/cards/" + fileName : "",
     upvoter: [],
     downvoter: [],
   });
