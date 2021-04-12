@@ -33,6 +33,9 @@ app.get("/jwtid", requireAuth, (req, res) => {
 app.use("/api/user", userRoutes);
 app.use("/api/card", cardRoutes);
 
+// static files
+app.use("/static", express.static("client/public"));
+
 // server
 app.listen(process.env.PORT, () => {
   console.log(`Listening on port ${process.env.PORT}`);
