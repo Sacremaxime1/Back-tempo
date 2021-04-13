@@ -4,24 +4,22 @@ const CardSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
-      minlength: 3,
-      maxlength: 55,
-      unique: true,
       trim: true,
     },
-    posterId: {
+    image: {
       type: String,
-      required: true,
     },
-    message: {
+    type: {
       type: String,
       trim: true,
-      maxlength: 500,
     },
-    picture: {
+    level: {
       type: String,
-      required: true,
+      trim: true,
+    },
+    category: {
+      type: String,
+      trim: true,
     },
     upvoter: {
       type: [String],

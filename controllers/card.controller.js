@@ -13,60 +13,6 @@ module.exports.readCard = (req, res) => {
   }).sort({ createdAt: -1 });
 };
 
-module.exports.createCard = async (req, res) => {
-  let fileName;
-
-  if (req.file !== null) {
-    try {
-      if (
-        req.file.detectedMimeType != "image/jpg" &&
-        req.file.detectedMimeType != "image/png" &&
-        req.file.detectedMimeType != "image/jpeg"
-      )
-        throw Error("invalid file");
-
-      if (req.file.size > 500000) throw Error("max size");
-    } catch (err) {
-      const errors = uploadErrors(err);
-      return res.status(201).json({ errors });
-    }
-    fileName = req.body.posterId + Date.now() + ".jpg";
-
-    await pipeline(
-      req.file.stream,
-      fs.createWriteStream(
-        `${__dirname}/../client/public/uploads/cards/${fileName}`
-      )
-    );
-  }
-
-  const newCard = new CardModel({
-    name: req.body.name,
-    posterId: req.body.posterId,
-    message: req.body.message,
-    picture: req.file !== null ? "./uploads/cards/" + fileName : "",
-    upvoter: [],
-    downvoter: [],
-  });
-
-  try {
-    const card = await newCard.save();
-    return res.status(201).json(card);
-  } catch (err) {
-    return res.status(400).send(err);
-  }
-};
-
-module.exports.deleteCard = (req, res) => {
-  if (!ObjectID.isValid(req.params.id))
-    return res.status(400).send("ID unknown : " + req.params.id);
-
-  CardModel.findByIdAndRemove(req.params.id, (err, docs) => {
-    if (!err) res.send(docs);
-    else console.log("Delete error : " + err);
-  });
-};
-
 module.exports.upvoteCard = async (req, res) => {
   if (!ObjectID.isValid(req.params.id))
     return res.status(400).send("ID unknown : " + req.params.id);
